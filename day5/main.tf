@@ -1,5 +1,5 @@
 resource "aws_key_pair" "ganesh-tf-demo" {
-  id = "ganesh-tf-demo"
+  key_name =   "ganesh-tf-demo"
   public_key = file("~/.ssh/id_rsa.pub")
 }
 
@@ -46,13 +46,15 @@ resource "aws_security_group" "web" {
     description = "http to instance"
     from_port = 80
     to_port = 80
-    cidr_blocks = "0.0.0.0/0"
+    cidr_blocks = ["0.0.0.0/0"]
+    protocol = "tcp"
   }
   ingress {
     description = "ssh to instance"
     from_port = 22
     to_port = 22
-    cidr_blocks = "0.0.0.0/0"
+    cidr_blocks = ["0.0.0.0/0"]
+    protocol = "tcp"
   }
 
   egress {
@@ -71,7 +73,8 @@ resource "aws_instance" "my-tf-demo" {
     instance_type = "t3.micro"
     subnet_id = aws_subnet.public_subnet.id
     ami = "ami-0360c520857e3138f"
-    vpc_security_group_ids = aws_security_group.web.id
+    vpc_security_group_ids = [aws_security_group.web.id]
+    key_name = aws_key_pair.ganesh-tf-demo.key_name
 
   connection {
     user = "ubuntu"
@@ -92,9 +95,8 @@ resource "aws_instance" "my-tf-demo" {
       "echo 'Hello from the remote instance'",
       "sudo apt update -y",
       "sudo apt install python3-pip -y",
-      "cd /home/ubuntu",
-      "pip3 install flask",
-      "nohup python3 /home/ubuntu/app.py &"
+      "sudo apt install -y python3-flask",
+      "sudo nohup python3 /home/ubuntu/app.py &"
     ]
     
   }
